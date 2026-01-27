@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discrete Quadratic Decay</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html {
+      height: 100%;
+    }
+    body {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <div style="flex: 1; min-height: 0">
+    <canvas id="chart"></canvas>
+  </div>
+  <div style="padding: 16px">
+    <div>
+      <label for="decay-length">Decay length (n)</label>
+      <input type="number" id="decay-length" min="0" step="any" value="2">
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Decay over a single step of size 1 for a quadratic decay of length n from a value of 1 to 0.
+     */
+    function decay(value, n) {
+      if(value <= 0) {
+        return 0;
+      }
+      const next = Math.sqrt(value) - 1/n;
+      return next > 0 ? next * next : 0;
+    }
+
+    function generateData(n) {
+      const data = [{ x: 0, y: 1 }];
+      let value = 1;
+      const count = Math.ceil(n);
+      for (let x = 1; x <= count; x++) {
+        value = decay(value, n);
+        data.push({ x: x, y: value });
+      }
+      return data;
+    }
+
+    const decayLengthInput = document.getElementById('decay-length');
+    const ctx = document.getElementById('chart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: generateData(parseFloat(decayLengthInput.value)),
+          pointRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          }
+        },
+        scales: {
+          x: {
+            min: 0,
+            ticks: {
+              stepSize: 1
+            }
+          },
+          y: {
+            min: 0,
+            max: 1
+          }
+        }
+      }
+    });
+
+    decayLengthInput.addEventListener('input', () => {
+      const n = parseFloat(decayLengthInput.value);
+      if (n > 0) {
+        chart.data.datasets[0].data = generateData(n);
+        chart.update();
+      }
+    });
+  </script>
+</body>
+</html>
